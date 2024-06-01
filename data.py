@@ -1,4 +1,4 @@
-training_data= [
+training_data = [
     {
         "prompt": "Generate a unit test for this function: \n```python\ndef add(a, b):\n    return a + b\n```",
         "completion": "```python\nimport unittest\n\nclass TestAddFunction(unittest.TestCase):\n    def test_add_large_numbers(self):\n        self.assertEqual(add(1e10, 1e10), 2e10)\n\n    def test_add_float_numbers(self):\n        self.assertAlmostEqual(add(0.1, 0.2), 0.3, places=7)\n\n    def test_add_string_numbers(self):\n        with self.assertRaises(TypeError):\n            add('1', 1)\n\nif __name__ == '__main__':\n    unittest.main()\n```"
@@ -93,7 +93,7 @@ training_data= [
     }
 ]
 
-validation_data= [
+validation_data = [
     {
         "prompt": "Generate a unit test for this function: \n```python\ndef add(a, b):\n    return a + b\n```",
         "completion": "```python\nimport unittest\n\nclass TestAddFunction(unittest.TestCase):\n    def test_add_positive_numbers(self):\n        self.assertEqual(add(2, 3), 5)\n\n    def test_add_negative_numbers(self):\n        self.assertEqual(add(-1, -1), -2)\n\n    def test_add_positive_and_negative_numbers(self):\n        self.assertEqual(add(-1, 1), 0)\n\n    def test_add_zero(self):\n        self.assertEqual(add(0, 0), 0)\n\nif __name__ == '__main__':\n    unittest.main()\n```"
