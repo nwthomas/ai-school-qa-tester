@@ -1,15 +1,25 @@
-from langchain_community.document_loaders import DirectoryLoader
-from langchain_community.document_loaders import TextLoader
-from langchain_community.tools.shell.tool import ShellTool
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+import os
+
+import openai
+from dotenv import load_dotenv
 from langchain.agents import AgentExecutor
-from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputParser
-from langchain.tools import tool
 from langchain.agents.format_scratchpad.openai_tools import (
     format_to_openai_tool_messages,
 )
+from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputParser
+from langchain.llms import OpenAI
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.tools import tool
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
+from langchain_community.tools.shell.tool import ShellTool
 from langchain_openai import ChatOpenAI
+
 from prompt import *
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL")
+
 
 @tool
 def look_at_existing_app():
@@ -23,6 +33,7 @@ def look_at_existing_app():
     """
     code = DirectoryLoader(f"./app/", silent_errors=True).load()
     return [c.metadata["source"] for c in code]
+
 
 @tool
 def get_page_contents(files):
@@ -41,21 +52,22 @@ def get_page_contents(files):
     loader = TextLoader(files[0])
     return [f"___{doc.metadata['source']}___\n{doc.page_content}" for doc in loader.load()]
 
+
 @tool
 def generate_unit_tests(function_code):
     """
     Generates the unit tests using OpenAI and `unittest` python library.
     """
-    llm = ChatOpenAI(
-        model_name="gpt-4o",
-        temperature=0,
-    )
+
+    llm = OpenAI(model=OPENAI_MODEL,
+                 api_key=OPENAI_API_KEY,
+                 )
 
     system_prompt = SYSTEM_PROMPT
 
     prompt_str = f"""
     {system_prompt}
-    
+
     ## Function to be tested:
     ```python
     {function_code}
@@ -64,8 +76,9 @@ def generate_unit_tests(function_code):
     ## Generate comprehensive unit tests for the function above:
     """
 
-    response = llm.invoke(prompt_str)
+    response = llm(prompt_str, temperature=0)
     return response
+
 
 @tool
 def update_file(file_path, new_content):
@@ -81,6 +94,7 @@ def update_file(file_path, new_content):
     except Exception as e:
         print("Error:", e)
 
+
 @tool
 def create_new_file(filename: str):
     """Only use this if the file is not created already. 
@@ -89,6 +103,7 @@ def create_new_file(filename: str):
     Only use this function when the file doesn't already exist."""
     with open(filename, 'w'):
         pass
+
 
 # List of tools to use
 tools = [
@@ -103,7 +118,7 @@ tools = [
 
 
 # Configure the language model
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
+llm = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-3.5-turbo", temperature=0)
 
 
 # Set up the prompt template
